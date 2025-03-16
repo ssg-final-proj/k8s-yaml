@@ -1,1 +1,1 @@
-# regocd
+# ArgoCD
