@@ -1,0 +1,104 @@
+# vss 네임스페이스 NetworkPolicy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vss-infra-network-policy
+  namespace: vss
+spec:
+  podSelector: {} 
+  policyTypes:
+    - Ingress
+    - Egress
+
+  ingress:
+    - from: 
+        - ipBlock:
+            cidr: 0.0.0.0/0  # ✅ ALB 트래픽 허용 (전체 인터넷)
+      ports:
+        - protocol: TCP
+          port: 8001 # Auth 서비스
+        - protocol: TCP
+          port: 8002 # Stock 서비스
+        - protocol: TCP
+          port: 8003 # Portfolio 서비스
+        - protocol: TCP
+          port: 8004 # Exchange 서비스
+
+    - from: # 기존 인프라 네임스페이스 트래픽 유지
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: infra 
+      ports:
+        - protocol: TCP
+          port: 8001 
+        - protocol: TCP
+          port: 8002 
+        - protocol: TCP
+          port: 8003 
+        - protocol: TCP
+          port: 8004 
+
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: infra 
+      ports:
+        - protocol: TCP
+          port: 6379 # Redis
+        - protocol: TCP
+          port: 9092 # Kafka
+    - to:  # ✅ 외부 API 호출 허용 (한국투자증권 등)
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443  # HTTPS
+        - protocol: TCP
+          port: 80   # HTTP
+
+---
+
+# infra 네임스페이스 NetworkPolicy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: infra-vss-network-policy
+  namespace: infra
+spec:
+  podSelector: {} 
+  policyTypes:
+    - Ingress
+    - Egress
+
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: vss 
+      ports:
+        - protocol: TCP
+          port: 6379 
+        - protocol: TCP
+          port: 9092 
+
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: vss 
+      ports:
+        - protocol: TCP
+          port: 8001 
+        - protocol: TCP 
+          port: 8002 
+        - protocol: TCP 
+          port: 8003 
+        - protocol: TCP 
+          port: 8004 
+    - to:  # ✅ 외부 데이터 연동 허용 (예: 한국투자증권 API)
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443

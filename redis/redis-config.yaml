@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: infra
+data:
+  redis.conf: |
+    # 모든 IP에서 접근 허용 (보안 설정 필요)
+    bind 0.0.0.0
+
+    # Redis 기본 포트 설정
+    port 6379
+
+    # 메모리 정책 설정 (LRU 방식)
+    maxmemory-policy allkeys-lru
+
+    # 영속성 설정
+    appendonly yes
+    save 900 1
+
+    # 데이터 저장 경로
+    dir /data
+
+    # TCP 설정
+    tcp-keepalive 300
+    timeout 0
+
+    # 파일 설정
+    dbfilename dump.rdb
+    appendfilename "appendonly.aof"
+
+    # AOF 자동 재작성 조건
+    auto-aof-rewrite-percentage 100
+    auto-aof-rewrite-min-size 64mb
+

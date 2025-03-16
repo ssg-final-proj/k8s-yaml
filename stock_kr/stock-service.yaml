@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stock-kr-service
+  namespace: vss
+  labels:
+    app.kubernetes.io/name: stock-kr-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: stock-kr-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: stock-kr-service
+    spec:
+      serviceAccountName: secrets-sa
+      containers:
+      - name: stock-service
+        image: 707677861059.dkr.ecr.ap-northeast-2.amazonaws.com/stock_kr_service:latest
+        imagePullPolicy: Always
+        # command: ["sleep"]
+        # args: ["3600"]
+        ports:
+          - containerPort: 8002
+        envFrom:
+          - configMapRef:
+              name: app-config
+        env:
+          - name: FLASK_APP
+            value: "app.app:create_app"
+          - name: KOREA_INVESTMENT_KEY_PATH
+            value: /k8s_yaml/koreainvestment.key
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        # livenessProbe:
+        #   httpGet:
+        #     path: /healthz
+        #     port: 8002
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        #   failureThreshold: 3
+        # readinessProbe:
+        #   httpGet:
+        #     path: /readiness
+        #     port: 8002
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        #   failureThreshold: 3
+        volumeMounts:
+          - name: koreainvestment-key
+            mountPath: /k8s_yaml/koreainvestment.key
+            subPath: koreainvestment.key
+      volumes:
+        - name: koreainvestment-key
+          secret:
+            secretName: stock-key-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stock-kr-service
+  namespace: vss
+  labels:
+    app.kubernetes.io/name: stock-kr-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: stock-kr-service
+  ports:
+    - protocol: TCP
+      port: 8002
+      targetPort: 8002

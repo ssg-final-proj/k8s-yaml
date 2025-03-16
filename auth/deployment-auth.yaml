@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: vss
+  labels:
+    app.kubernetes.io/name: auth-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: auth-service # Deployment가 관리할 Pod
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: auth-service # Deployment가 관리할 Pod
+    spec:
+      serviceAccountName: secrets-sa  # AWS Secrets Manager 접근을 위한 IAM 연동된 서비스 계정
+      containers:
+        - name: auth-service
+          image: 707677861059.dkr.ecr.ap-northeast-2.amazonaws.com/auth_service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8001
+          envFrom:
+            - configMapRef:
+                name: app-config  # 환경 변수 (ConfigMap)
+            - secretRef:
+                name: app-secret  # 환경 변수 (Secret)
+          env:
+            - name: DATABASE_URL
+              value: "mysql+pymysql://$(MYSQL_USER):$(MYSQL_PASSWORD)@$(MYSQL_HOST):$(MYSQL_PORT)"
+            - name: FLASK_APP
+              value: "app.app:create_app"
+          resources:
+            requests: # Pod가 실행될 때 최소 보장 리소스
+              cpu: "250m"
+              memory: "128Mi"
+            limits: # 최대 사용 가능
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8001
+            initialDelaySeconds: 30 # 컨테이너 시작 후 10초 뒤부터 체크 시작
+            periodSeconds: 10 # 이후 30초마다 체크
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: 8001
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3

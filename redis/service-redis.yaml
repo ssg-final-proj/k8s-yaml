@@ -1,0 +1,14 @@
+# service-redis.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: infra
+spec:
+  selector:
+    app: redis  # Redis StatefulSet의 라벨과 일치
+  type: ClusterIP
+  ports:
+    - port: 6379 # 서비스가 클러스터 내부에서 노출하는 포트
+      protocol: TCP
+      targetPort: 6379 # Pod 내부 Redis 컨테이너 포트(6379)로 트래픽 전달

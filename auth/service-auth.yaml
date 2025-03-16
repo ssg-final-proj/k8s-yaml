@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: vss
+  labels:
+    app.kubernetes.io/name: auth-service
+spec:
+  type: ClusterIP  # 내부에서만 접근 가능한 서비스
+  selector:
+    app.kubernetes.io/name: auth-service  # Deployment의 Pod들과 매칭
+  ports:
+    - protocol: TCP
+      port: 8001  # Ingress가 접근할 포트
+      targetPort: 8001  # 컨테이너가 실행하는 포트

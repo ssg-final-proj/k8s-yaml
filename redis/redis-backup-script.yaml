@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-backup-script
+  namespace: infra
+data:
+  backup.sh: |-
+    #!/bin/bash
+
+    declare -A BACKUP_INTERVALS=(
+      [0]=60     # DB0: 1분
+      [1]=300    # DB1: 5분
+      [4]=86400  # DB4: 24시간
+      [5]=3600   # DB5: 1시간
+    )
+
+    for DB in "${!BACKUP_INTERVALS[@]}"; do
+      LAST_BACKUP=$(redis-cli -n $DB GET "last_backup" || echo 0)
+      NOW=$(date +%s)
+      
+      if (( NOW - LAST_BACKUP >= ${BACKUP_INTERVALS[$DB]} )); then
+        echo "[$(date)] DB$DB 백업 시작"
+        
+        # 1. RDB 파일 생성 (SAVE 명령 사용)
+        redis-cli -n $DB SAVE
+        sleep 2  # 파일 생성 대기
+        
+        # 2. 파일 존재 확인
+        if [ -f /data/dump.rdb ]; then
+          # 3. 고유 파일명으로 복사
+          cp /data/dump.rdb "/tmp/db${DB}_$(date +%s).rdb"
+          
+          # 4. S3 업로드
+          aws s3 cp "/tmp/db${DB}_$(date +%s).rdb" \
+            "s3://redis-backup-bucket-hi/db${DB}/backup-$(date +\%Y\%m\%d-\%H\%M).rdb" && \
+          redis-cli -n $DB SET "last_backup" $NOW
+          
+          # 5. 임시 파일 정리
+          rm -f "/tmp/db${DB}_$(date +%s).rdb"
+          rm -f /data/dump.rdb
+        else
+          echo "[ERROR] DB$DB: dump.rdb not found!"
+        fi
+      fi
+    done

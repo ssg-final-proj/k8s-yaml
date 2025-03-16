@@ -1,0 +1,39 @@
+# token-refresher-cronjob.yaml
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: token-refresher
+  namespace: vss
+spec:
+  schedule: "0 0 * * *"  # 매일 자정 실행
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: token-refresher
+            image: python:3.9
+            command: ["python", "-c"]
+            args:
+              - |
+                import redis
+                from mojito import KoreaInvestment
+                import os
+
+                key_path = os.getenv("KOREA_INVESTMENT_KEY_PATH")
+                with open(key_path) as f:
+                    lines = f.readlines()
+                    key = lines[0].strip()
+                    secret = lines[1].strip()
+                    acc_no = lines[2].strip()
+
+                client = KoreaInvestment(api_key=key, api_secret=secret, acc_no=acc_no)
+                token = client.access_token
+
+                r = redis.Redis(host='redis.infra.svc.cluster.local', port=6379)
+                r.setex("korea_investment_token", 82800, token)  # 23시간 저장
+          restartPolicy: OnFailure
+          volumes:
+            - name: koreainvestment-key
+              secret:
+                secretName: stock-key-secret

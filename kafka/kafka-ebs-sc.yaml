@@ -1,0 +1,10 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: kafka-ebs-sc
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer  # Pod가 할당될 때까지 대기
+allowVolumeExpansion: true               # 필요 시 볼륨 크기 확장 가능
+parameters:
+  type: gp3                              # EBS 볼륨 타입 (gp2, gp3 가능)
+  fsType: ext4                           # 파일 시스템 타입 : 범용적인 Linux 파일 시스템, 빠르고 안정적

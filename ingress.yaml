@@ -1,0 +1,53 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vss-service-ingress
+  namespace: vss
+  annotations:
+    kubernetes.io/ingress.class: alb  # ALB를 사용하여 Ingress 관리
+    alb.ingress.kubernetes.io/scheme: internet-facing  # ALB를 인터넷-facing으로 설정
+    alb.ingress.kubernetes.io/target-type: ip  # EKS에서는 'ip' 타입 사용
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'  # HTTP와 HTTPS 모두 설정
+    alb.ingress.kubernetes.io/ssl-redirect: '443'  # HTTP에서 HTTPS로 리다이렉트
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:ap-northeast-2:707677861059:certificate/8324cc97-02eb-44b1-833a-fa9a230e8051"  # ACM 인증서 ARN
+    external-dns.alpha.kubernetes.io/hostname: "www.stockstalk.store"  # Route 53에 도메인 자동 등록
+    
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz  # 헬스 체크 경로
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '60'  # 헬스 체크 주기
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '10'  # 헬스 체크 타임아웃
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'  # 헬시 상태 판별 횟수
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'  # 언헬시 상태 판별 횟수
+spec:
+  ingressClassName: alb  # ALB Ingress Controller 사용
+  rules:
+    - host: www.stockstalk.store  # 도메인 이름 설정
+      http:
+        paths:
+          - path: /auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 8001  # auth-service의 포트
+          - path: /
+            pathType: Prefix  # 모든 경로를 처리
+            backend:
+              service:
+                name: stock-kr-service  # auth-service로 트래픽 전달
+                port:
+                  number: 8002  # stock-service의 포트
+          - path: /portfolio
+            pathType: Prefix
+            backend:
+              service:
+                name: portfolio-service
+                port:
+                  number: 8003   # portfolio-service의 포트
+          - path: /exchange
+            pathType: Prefix
+            backend:
+              service:
+                name: exchange-service
+                port:
+                  number: 8004   # exchange-service의 포트
