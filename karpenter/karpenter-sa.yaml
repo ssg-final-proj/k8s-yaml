@@ -1,0 +1,8 @@
+# karpenter-sa.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: karpenter-sa
+  namespace: infra
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::707677861059:role/KarpenterControllerRole

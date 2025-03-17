@@ -1,0 +1,23 @@
+# 2.provisioner-config.yaml
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: infra-provisioner  # ✅ 인프라 전용 프로비저너
+spec:
+  consolidation:
+    enabled: true
+  requirements:
+    - key: karpenter.k8s.aws/instance-family
+      operator: In
+      values: [m5, c5, r5]
+  ttlSecondsAfterEmpty: 60
+---
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeTemplate
+metadata:
+  name: infra-node-template
+spec:
+  subnetSelector:
+    karpenter.sh/discovery: tf-eks-cluster
+  securityGroupSelector:
+    karpenter.sh/discovery: tf-eks-cluster

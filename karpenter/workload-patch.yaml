@@ -1,0 +1,10 @@
+# karpenter/workload-patch.yaml
+spec:
+  template:
+    spec:
+      nodeSelector:
+        karpenter.sh/provisioner-name: infra-provisioner  # ✅ 프로비저너 이름
+      tolerations:
+        - key: "infra"
+          operator: "Exists"
+          effect: "NoSchedule"

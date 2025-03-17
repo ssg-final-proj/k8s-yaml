@@ -64,4 +64,6 @@ kubectl apply -f ingress.yaml
 echo "Applying Network Policies..."
 kubectl apply -f networkpolicy.yaml
 
+kubectl apply -f all-services-hpa.yaml
+
 echo "Deployment completed!"

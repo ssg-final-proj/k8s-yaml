@@ -1,0 +1,14 @@
+# karpenter-patch.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: all-services  # 모든 서비스를 포괄하는 이름 (실제 이름 무시)
+spec:
+  template:
+    spec:
+      nodeSelector:
+        karpenter.sh/provisioner-name: infra-provisioner
+      tolerations:
+        - key: "infra"
+          operator: "Exists"
+          effect: "NoSchedule"

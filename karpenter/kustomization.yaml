@@ -1,0 +1,17 @@
+# kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- auth-service.yaml
+- stock-kr-service.yaml
+- exchange-service.yaml
+- portfolio-service.yaml
+
+patches:
+- path: workload-patch.yaml
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ".*"  # 모든 Deployment 선택

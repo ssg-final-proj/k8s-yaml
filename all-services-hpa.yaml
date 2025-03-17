@@ -10,7 +10,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: auth-service  # 대상 디플로이먼트 이름
-  minReplicas: 2        # 최소 파드 수
+  minReplicas: 3        # 최소 파드 수
   maxReplicas: 5        # 최대 파드 수
   metrics:
   - type: Resource
@@ -31,7 +31,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: exchange-service
-  minReplicas: 2
+  minReplicas: 3
   maxReplicas: 5
   metrics:
   - type: Resource
@@ -52,7 +52,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: portfolio-service
-  minReplicas: 2
+  minReplicas: 3
   maxReplicas: 5
   metrics:
   - type: Resource
@@ -73,7 +73,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: stock-kr-service
-  minReplicas: 2
+  minReplicas: 3
   maxReplicas: 5
   metrics:
   - type: Resource

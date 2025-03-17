@@ -1,0 +1,40 @@
+---
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: global-provisioner
+spec:
+  consolidation:
+    enabled: true
+  requirements:
+    - key: "karpenter.k8s.aws/instance-family"
+      operator: In
+      values: [m5, c5, r5]
+    - key: "topology.kubernetes.io/zone"
+      operator: In
+      values: [ap-northeast-2a, ap-northeast-2c]
+  ttlSecondsAfterEmpty: 60
+  provider:
+    subnetSelector:
+      karpenter.sh/discovery: tf-eks-cluster  # 실제 클러스터 이름으로 치환
+    securityGroupSelector:
+      karpenter.sh/discovery: tf-eks-cluster
+    instanceProfile: KarpenterNodeInstanceProfile-tf-eks-cluster
+  labels:
+    security-tier: auto-scaled
+  taints:
+    - key: "karpenter"
+      value: "global"
+      effect: "NoSchedule"
+
+---
+# 모든 워크로드 공통 패치
+spec:
+  template:
+    spec:
+      nodeSelector:
+        karpenter.sh/provisioner-name: global-provisioner
+      tolerations:
+        - key: "karpenter"
+          operator: "Exists"
+          effect: "NoSchedule"
