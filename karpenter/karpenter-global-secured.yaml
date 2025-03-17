@@ -16,7 +16,7 @@ spec:
   ttlSecondsAfterEmpty: 60
   provider:
     subnetSelector:
-      karpenter.sh/discovery: tf-eks-cluster  # 실제 클러스터 이름으로 치환
+      karpenter.sh/discovery: tf-eks-cluster
     securityGroupSelector:
       karpenter.sh/discovery: tf-eks-cluster
     instanceProfile: KarpenterNodeInstanceProfile-tf-eks-cluster
