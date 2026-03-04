@@ -1,0 +1,7 @@
+
+# secrets
+cookies.txt
+koreainvestment.key
+*.key
+*.pem
+.env
