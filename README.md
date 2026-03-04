@@ -199,31 +199,18 @@ kubectl get ingress -n vss
 
 ### IRSA 재생성 문제
 
-네임스페이스를 삭제해도 CloudFormation 스택이 남아 있으면 `eksctl`이 기존 리소스를 제외 처리할 수 있습니다.  
-이 경우 기존 IRSA/CloudFormation 스택 정리 후 다시 생성해야 할 수 있습니다.
+네임스페이스를 삭제해도 CloudFormation 스택이 남아 있으면 `eksctl`이 기존 리소스를 제외(excluded) 처리할 수 있습니다.
+
+이 경우 기존 IRSA 또는 CloudFormation 스택을 정리한 뒤 다시 생성해야 합니다.
 
 ### Kafka Ready 지연
 
-Kafka Pod가 모두 Ready 되기까지 시간이 걸릴 수 있습니다.  
-`apply.sh`는 `kafka-k-nodes` 3개가 Ready 될 때까지 대기하도록 되어 있습니다.
+Kafka Pod가 Ready 상태가 되기까지 시간이 꽤 걸릴 수 있습니다.
 
-### Redirect URI 문제
-
-카카오 로그인 Redirect URI는 사전에 등록된 URI만 허용됩니다.  
-Ingress 뒤에서 서비스가 동작하므로 외부 접근 포트를 직접 노출하지 않는 형태로 URI를 맞춰야 합니다.
-
-### Redis 연결 문제
-
-애플리케이션에서 Redis에 접근하려면 Redis Service가 반드시 필요합니다.  
-ClusterIP Service를 통해 `redis.infra` 또는 cluster DNS로 접근합니다.
-
-### 도메인 접속 문제
-
-Terraform 재적용 후 Route 53 호스팅 영역이 새로 생성되면 NS 값이 바뀔 수 있습니다.  
-이 경우 도메인 등록기관에 변경된 NS 값을 다시 반영해야 합니다.
+`apply.sh` 스크립트는 `kafka-k-nodes` Pod 3개가 모두 Ready 상태가 될 때까지 대기하도록 구성되어 있습니다.
 
 ## 참고
 
 - DB 스키마 생성은 RDS에서 별도로 수행합니다.
-- MySQL 테스트용 컨테이너는 로컬 개발용이며, 실제 배포 환경에서는 RDS를 사용합니다.
-- 운영 환경에서는 ConfigMap에 들어간 민감정보를 Secret/Secrets Manager로 분리하는 것이 좋습니다.
+- MySQL 컨테이너는 개발 테스트용이며 실제 환경에서는 RDS를 사용합니다.
+- 운영 환경에서는 ConfigMap에 포함된 민감 정보는 Secret 또는 AWS Secrets Manager로 분리하는 것을 권장합니다.
