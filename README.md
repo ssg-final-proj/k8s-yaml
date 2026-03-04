@@ -134,7 +134,7 @@ eksctl create iamserviceaccount \
   --name secrets-sa \
   --namespace vss \
   --cluster tf-eks-cluster \
-  --attach-policy-arn arn:aws:iam::707677861059:policy/SecretsManagerIRSAReadPolicy \
+  --attach-policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/SecretsManagerIRSAReadPolicy \
   --approve
 ```
 
